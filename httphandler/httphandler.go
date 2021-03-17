@@ -69,7 +69,10 @@ func SetCookie(cookie *http.Cookie) http.Handler {
 	})
 }
 
-// ServeHTTP with code, header, body & compression
+// ResponseWith given state of code, header, body & compression that can be
+// build from NewResponseState, `*responseState` is also able to set in
+// different middleware by calling SetStateToRequest and read from other
+// middleware via GetStateFromRequest
 func ResponseWith(state *responseState) http.Handler {
 	statusCode, header, body, compression := state.statusCode, state.header, state.body, state.compression
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
