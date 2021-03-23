@@ -15,7 +15,7 @@ require (
 	github.com/json-iterator/go v1.1.10
 	github.com/mattn/go-sqlite3 v1.14.6
 	github.com/onsi/gomega v1.11.0
-	github.com/prometheus/client_golang v1.9.0
+	github.com/prometheus/client_golang v1.10.0
 	github.com/rs/zerolog v1.20.0
 	github.com/tdewolff/minify/v2 v2.9.15
 	github.com/yuin/gopher-lua v0.0.0-20200816102855-ee81675732da // indirect
