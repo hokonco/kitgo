@@ -1,4 +1,5 @@
 vendor/
+coverage.html
 
 # The remainder of this file is taken from
 # https://github.com/github/gitignore/blob/master/Go.gitignore

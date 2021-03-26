@@ -11,15 +11,18 @@ require (
 	github.com/dgraph-io/ristretto v0.0.3
 	github.com/go-redis/redis v6.15.9+incompatible
 	github.com/golang/mock v1.5.0
+	github.com/golang/protobuf v1.5.1 // indirect
 	github.com/gomodule/redigo v1.8.4 // indirect
 	github.com/json-iterator/go v1.1.10
 	github.com/mattn/go-sqlite3 v1.14.6
 	github.com/onsi/gomega v1.11.0
 	github.com/prometheus/client_golang v1.10.0
+	github.com/prometheus/common v0.20.0 // indirect
 	github.com/rs/zerolog v1.21.0
 	github.com/tdewolff/minify/v2 v2.9.15
 	github.com/yuin/gopher-lua v0.0.0-20200816102855-ee81675732da // indirect
-	golang.org/x/crypto v0.0.0-20200622213623-75b288015ac9
+	golang.org/x/crypto v0.0.0-20210322153248-0c34fe9e7dc2
 	golang.org/x/image v0.0.0-20210220032944-ac19c3e999fb
+	golang.org/x/net v0.0.0-20210326060303-6b1517762897 // indirect
 	golang.org/x/text v0.3.5
 )
