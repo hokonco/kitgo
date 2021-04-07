@@ -165,7 +165,7 @@ func Test_pkg_panic(t *testing.T) {
 	kitgo.PanicWhen(err != nil, err)
 	Expect(func() { kitgo.PanicWhen(err == nil, err) }).NotTo(Panic())
 
-	err = kitgo.NewError("error")
+	err = fmt.Errorf("error")
 	defer kitgo.RecoverWith(func(v interface{}) {})
 	kitgo.PanicWhen(err != nil, err)
 }
@@ -174,35 +174,34 @@ func Test_pkg_errors(t *testing.T) {
 	t.Parallel()
 	Expect := NewWithT(t).Expect
 
-	var err error = kitgo.NewError("error")
+	err := fmt.Errorf("error")
 	Expect(err).NotTo(BeNil())
-	Expect(kitgo.Errors(nil)).To(BeNil())
-	Expect(kitgo.Errors{{err}}).NotTo(BeNil())
-	Expect(kitgo.Errors{{err}}.Error()).To(Equal(err.Error()))
-	Expect(kitgo.Errors{{err}, {err}}.Error()).To(Equal(err.Error() + "\n" + err.Error()))
-	errs := kitgo.Errors{}
-	errs = errs.Append(nil, nil, kitgo.Error{err}, fmt.Errorf("error"))
+
+	errs := kitgo.NewErrors(err)
+	Expect(errs).NotTo(BeNil())
+	Expect(errs.Error()).To(Equal(err.Error()))
+
+	errs = errs.Append(err)
+	Expect(errs).NotTo(BeNil())
+	Expect(errs.Error()).To(Equal(err.Error() + "\n" + err.Error()))
+
+	errs = kitgo.NewErrors(nil, nil, err, fmt.Errorf("error"))
+	Expect(errs).NotTo(BeNil())
 	Expect(errs.Error()).To(Equal(err.Error() + "\n" + err.Error()))
 
 	b, err := errs.MarshalJSON()
 	Expect(err).To(BeNil())
 	Expect(b).NotTo(BeNil())
 	Expect(b).To(Equal([]byte(`["error","error"]`)))
-	errs = kitgo.Errors{}
+
+	errs = kitgo.NewErrors(nil)
+	Expect(errs).To(BeNil())
 	Expect(len(errs)).To(Equal(0))
+
+	errs = kitgo.NewErrors()
 	err = errs.UnmarshalJSON([]byte(`["error","error"]`))
 	Expect(err).To(BeNil())
 	Expect(len(errs)).To(Equal(2))
-
-	err = kitgo.NewError("error")
-	errX := kitgo.Error{err}
-	Expect(errX.As(&err)).To(BeTrue())
-	Expect(errX.Is(err)).To(BeTrue())
-	Expect(errX.Unwrap()).To(BeNil())
-	Expect(errX.Error()).To(Equal(err.Error()))
-
-	b, _ = errX.MarshalJSON()
-	_ = errX.UnmarshalJSON(b)
 }
 
 func Test_pkg_currency(t *testing.T) {
@@ -613,19 +612,19 @@ func Test_pkg_parallel(t *testing.T) {
 			func() error { <-time.After(13 * time.Millisecond); return nil },
 			func() error { <-time.After(14 * time.Millisecond); return nil },
 			func() error { <-time.After(15 * time.Millisecond); return nil },
-			func() error { return kitgo.NewError("error") },
-			func() error { return kitgo.NewError("error") },
-			func() error { return kitgo.NewError("error") },
-			func() error { return kitgo.NewError("error") },
-			func() error { return kitgo.NewError("error") },
-			func() error { return kitgo.NewError("error") },
+			func() error { return fmt.Errorf("error") },
+			func() error { return fmt.Errorf("error") },
+			func() error { return fmt.Errorf("error") },
+			func() error { return fmt.Errorf("error") },
+			func() error { return fmt.Errorf("error") },
+			func() error { return fmt.Errorf("error") },
 		)
 		count := 0
 		for err := range ch {
 			count++
 			Expect(err).Should(HaveOccurred())
 			Expect(err.Error()).Should(Or(
-				Equal(kitgo.NewError("error").Error()),
+				Equal(fmt.Errorf("error").Error()),
 				Equal(context.DeadlineExceeded.Error()),
 			))
 		}

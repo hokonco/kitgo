@@ -3,6 +3,7 @@ package sqlclient
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"sync"
 	"time"
 
@@ -48,7 +49,7 @@ type Client struct {
 // Statement will cached a prepared statement on next identical query
 func (s *Client) Statement(ctx context.Context, tx *sql.Tx, q string) (stmt Statement) {
 	if q == "" {
-		stmt.err = kitgo.NewError("invalid stmt")
+		stmt.err = fmt.Errorf("invalid stmt")
 		return
 	}
 	func() {
@@ -72,7 +73,7 @@ func (s *Client) Done(tx *sql.Tx, err error) error {
 	if tx != nil {
 		if err != nil {
 			if err_ := tx.Rollback(); err_ != nil {
-				err = kitgo.NewError(err.Error()+": (%w)", err_)
+				err = fmt.Errorf("%s: (%w)", err, err_)
 			}
 		} else {
 			err = tx.Commit()

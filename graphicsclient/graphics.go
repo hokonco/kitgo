@@ -1,6 +1,7 @@
 package graphicsclient
 
 import (
+	"fmt"
 	"image"
 	"image/draw"
 	"image/gif"
@@ -9,7 +10,6 @@ import (
 	"io"
 
 	"github.com/BurntSushi/graphics-go/graphics"
-	"github.com/hokonco/kitgo"
 	"golang.org/x/image/bmp"
 	"golang.org/x/image/tiff"
 	_ "golang.org/x/image/webp"
@@ -20,7 +20,7 @@ func New() *Client { return &Client{} }
 type Client struct{}
 
 func (x *Client) Blur(dst io.Writer, src io.Reader, stdDev float64, size int) (err error) {
-	err = kitgo.NewError("invalid parameter")
+	err = fmt.Errorf("invalid parameter")
 	if dst != nil && src != nil && stdDev > 0 && size > 0 {
 		var srcImg image.Image
 		var format string
@@ -35,7 +35,7 @@ func (x *Client) Blur(dst io.Writer, src io.Reader, stdDev float64, size int) (e
 	return
 }
 func (x *Client) Rotate(dst io.Writer, src io.Reader, angle float64) (err error) {
-	err = kitgo.NewError("invalid parameter")
+	err = fmt.Errorf("invalid parameter")
 	if dst != nil && src != nil && angle != 0 {
 		var srcImg image.Image
 		var format string
@@ -50,7 +50,7 @@ func (x *Client) Rotate(dst io.Writer, src io.Reader, angle float64) (err error)
 	return
 }
 func (x *Client) Scale(dst io.Writer, src io.Reader, w, h int) (err error) {
-	err = kitgo.NewError("invalid parameter")
+	err = fmt.Errorf("invalid parameter")
 	if dst != nil && src != nil && w > 0 && h > 0 {
 		var srcImg image.Image
 		var format string
@@ -64,7 +64,7 @@ func (x *Client) Scale(dst io.Writer, src io.Reader, w, h int) (err error) {
 	return
 }
 func (x *Client) Thumbnail(dst io.Writer, src io.Reader, w, h int) (err error) {
-	err = kitgo.NewError("invalid parameter")
+	err = fmt.Errorf("invalid parameter")
 	if dst != nil && src != nil && w > 0 && h > 0 {
 		var srcImg image.Image
 		var format string

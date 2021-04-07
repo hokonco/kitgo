@@ -2,6 +2,7 @@ package httpclient_test
 
 import (
 	"bytes"
+	"fmt"
 	"net/http"
 	"os"
 	"testing"
@@ -23,7 +24,7 @@ func Test_client_http(t *testing.T) {
 
 	mock.Expect("GET", "/404", http.NotFoundHandler())
 	req, err := http.NewRequest("GET", mock.URL("/404"), nil)
-	err_ := kitgo.NewError("error")
+	err_ := fmt.Errorf("error")
 	Expect(err).To(BeNil())
 	Expect(req).NotTo(BeNil())
 

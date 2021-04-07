@@ -18,7 +18,7 @@ type Client struct{ tpl *template.Template }
 // Parse receive multiple io.Reader, this is useful for testing purpose,
 // using strings.NewReader("pattern"), or even *os.File
 func (t *Client) Parse(r ...io.Reader) error {
-	errs := kitgo.Errors(nil)
+	errs := kitgo.NewErrors()
 	for i := range r {
 		buf := &bytes.Buffer{}
 		_, err := io.Copy(buf, r[i])

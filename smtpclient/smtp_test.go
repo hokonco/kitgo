@@ -2,6 +2,7 @@ package smtpclient_test
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"net"
 	"net/mail"
@@ -45,7 +46,7 @@ func Test_client_smtp(t *testing.T) {
 
 		t.Run("err lookupMX", func(t *testing.T) {
 			netResolver := kitgo.NewMockNetResolver(ctrl)
-			netResolver.EXPECT().LookupMX(ctx, "example.com").Return(nil, kitgo.NewError("error"))
+			netResolver.EXPECT().LookupMX(ctx, "example.com").Return(nil, fmt.Errorf("error"))
 			mock.WithNetResolver(netResolver)
 			Expect(smtpCli.ReverseLookup(ctx, from, to)).To(HaveOccurred())
 		})
@@ -56,7 +57,7 @@ func Test_client_smtp(t *testing.T) {
 
 		t.Run("err dialContext", func(t *testing.T) {
 			netDialer := kitgo.NewMockNetDialer(ctrl)
-			netDialer.EXPECT().DialContext(ctx, "tcp", "example.com:25").Return(nil, kitgo.NewError("error"))
+			netDialer.EXPECT().DialContext(ctx, "tcp", "example.com:25").Return(nil, fmt.Errorf("error"))
 			mock.WithNetDialer(netDialer)
 			Expect(smtpCli.ReverseLookup(ctx, from, to)).To(HaveOccurred())
 		})
@@ -68,12 +69,12 @@ func Test_client_smtp(t *testing.T) {
 		Expect(smtpCli.ReverseLookup(ctx, from, to)).To(HaveOccurred())
 
 		t.Run("err client", func(t *testing.T) {
-			mock.WithNewSmtpClient(nil, kitgo.NewError("error"))
+			mock.WithNewSmtpClient(nil, fmt.Errorf("error"))
 			Expect(smtpCli.ReverseLookup(ctx, from, to)).To(HaveOccurred())
 		})
 		t.Run("err hello", func(t *testing.T) {
 			smtpClient := kitgo.NewMockSmtpClient(ctrl)
-			smtpClient.EXPECT().Hello("example.com").Return(kitgo.NewError("error"))
+			smtpClient.EXPECT().Hello("example.com").Return(fmt.Errorf("error"))
 			smtpClient.EXPECT().Close()
 			mock.WithNewSmtpClient(smtpClient, nil)
 			Expect(smtpCli.ReverseLookup(ctx, from, to)).To(HaveOccurred())
@@ -81,7 +82,7 @@ func Test_client_smtp(t *testing.T) {
 		t.Run("err mail", func(t *testing.T) {
 			smtpClient := kitgo.NewMockSmtpClient(ctrl)
 			smtpClient.EXPECT().Hello("example.com")
-			smtpClient.EXPECT().Mail("mail-1@example.com").Return(kitgo.NewError("error"))
+			smtpClient.EXPECT().Mail("mail-1@example.com").Return(fmt.Errorf("error"))
 			smtpClient.EXPECT().Close()
 			mock.WithNewSmtpClient(smtpClient, nil)
 			Expect(smtpCli.ReverseLookup(ctx, from, to)).To(HaveOccurred())
@@ -90,7 +91,7 @@ func Test_client_smtp(t *testing.T) {
 			smtpClient := kitgo.NewMockSmtpClient(ctrl)
 			smtpClient.EXPECT().Hello("example.com")
 			smtpClient.EXPECT().Mail("mail-1@example.com")
-			smtpClient.EXPECT().Rcpt("mail-2@example.com").Return(kitgo.NewError("error"))
+			smtpClient.EXPECT().Rcpt("mail-2@example.com").Return(fmt.Errorf("error"))
 			smtpClient.EXPECT().Close()
 			mock.WithNewSmtpClient(smtpClient, nil)
 			Expect(smtpCli.ReverseLookup(ctx, from, to)).To(HaveOccurred())
@@ -115,7 +116,7 @@ func Test_client_smtp(t *testing.T) {
 		Expect(smtpCli.SendMail(ctx, "", to, to, "", nil, nil)).To(HaveOccurred())
 		Expect(smtpCli.SendMail(ctx, "", from, to, "", nil, nil)).To(HaveOccurred())
 		Expect(smtpCli.SendMail(ctx, "id", from, to, "subject", []byte("plain"), []byte("html"))).To(HaveOccurred())
-		mock.WithSendMail(kitgo.NewError("error"))
+		mock.WithSendMail(fmt.Errorf("error"))
 		Expect(smtpCli.SendMail(ctx, "id", from, to, "subject", []byte("plain"), []byte("html"))).To(HaveOccurred())
 		mock.WithSendMail(nil)
 		Expect(smtpCli.SendMail(ctx, "id", from, to, "subject", []byte("plain"), []byte("html"))).To(BeNil())
