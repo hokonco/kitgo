@@ -19,7 +19,6 @@ import (
 	"io"
 	"math/big"
 
-	"github.com/hokonco/kitgo"
 	"golang.org/x/crypto/acme/autocert"
 	"golang.org/x/crypto/argon2"
 	"golang.org/x/crypto/bcrypt"
@@ -326,7 +325,7 @@ func read(r io.Reader) (k interface{}, err error) {
 	buf := &bytes.Buffer{}
 	if _, err = io.Copy(buf, io.LimitReader(r, 1e9)); err == nil {
 		p, rb := pem.Decode(buf.Bytes())
-		err = kitgo.NewError("invalid pem:[%v] rest:[%s]", p, rb)
+		err = fmt.Errorf("invalid pem:[%v] rest:[%s]", p, rb)
 		if p != nil {
 			k, err = x509.ParsePKCS8PrivateKey(p.Bytes)
 			if err != nil || k == nil {
@@ -367,7 +366,7 @@ func validateRSA(pk *rsa.PrivateKey) (err error) {
 	}
 	cmp := func(a, b []byte) bool { return string(a) == string(b) }
 	if err == nil {
-		err = kitgo.NewError("mismatched: msg:[%s] d1:[%s] d2:[%s]", msg, d1, d2)
+		err = fmt.Errorf("mismatched: msg:[%s] d1:[%s] d2:[%s]", msg, d1, d2)
 	}
 	if cmp(msg, d1) && cmp(msg, d2) {
 		err = nil
@@ -384,7 +383,7 @@ func validateECDSA(pk *ecdsa.PrivateKey) (err error) {
 	onCurve = onCurve && x.PrivateKey.IsOnCurve(x.PrivateKey.X, x.PrivateKey.Y)
 	onCurve = onCurve && x.PublicKey.IsOnCurve(x.PublicKey.X, x.PublicKey.Y)
 	if !onCurve {
-		err = kitgo.NewError("pub not on curve: key_x:[%v] key_y:[%v] pub_x:[%v] pub_y:[%v]",
+		err = fmt.Errorf("pub not on curve: key_x:[%v] key_y:[%v] pub_x:[%v] pub_y:[%v]",
 			x.PrivateKey.X, x.PrivateKey.Y,
 			x.PublicKey.X, x.PublicKey.Y,
 		)
@@ -398,7 +397,7 @@ func validateECDSA(pk *ecdsa.PrivateKey) (err error) {
 		r, s, err = x.Sign(h[:])
 	}
 	if err == nil {
-		err = kitgo.NewError("mismatch: sig:[%s] r:[%v] s:[%v]", sig, r, s)
+		err = fmt.Errorf("mismatch: sig:[%s] r:[%v] s:[%v]", sig, r, s)
 		if x.VerifyASN1(h[:], sig) && x.Verify(h[:], r, s) {
 			err = nil
 		}

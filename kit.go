@@ -3,7 +3,6 @@ package kitgo
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	html "html/template"
 	"os"
@@ -76,76 +75,52 @@ func (l *List) Map(fn func(k int, v interface{})) {
 	})
 }
 
-// Errors is a wrapper to slice of `error`
-type Errors []Error
+func NewErrors(errs ...error) errors {
+	return errors(nil).Append(errs...)
+}
 
-func (e Errors) MarshalJSON() ([]byte, error) {
-	var _ json.Marshaler = e
-	var v []string
-	for i := range e {
-		if e[i].Err != nil {
-			v = append(v, e[i].Err.Error())
-		}
-	}
-	return JSON.Marshal(v)
-}
-func (e *Errors) UnmarshalJSON(b []byte) error {
-	var _ json.Unmarshaler = e
-	v := []string{}
-	err := JSON.Unmarshal(b, &v)
-	for i := range v {
-		if v[i] != "" {
-			*e = append(*e, NewError(v[i]))
-		}
-	}
-	return err
-}
-func (e Errors) Append(errs ...error) Errors {
-	for _, err := range errs {
-		if e0, ok := err.(Error); ok {
-			e = append(e, e0)
-		} else if err != nil {
-			e = append(e, Error{err})
+// errors is a wrapper to slice of `error`
+type errors []error
+
+func (e errors) Append(errs ...error) errors {
+	for i := range errs {
+		if errs[i] != nil {
+			e = append(e, errs[i])
 		}
 	}
 	return e
 }
-func (e Errors) Error() string {
+func (e errors) Error() string {
 	var _ error = e
-	es := []string{}
-	for i := range e {
-		if e[i].Err != nil {
-			es = append(es, e[i].Err.Error())
+	var v []string
+	for i := 0; e != nil && i < len(e); i++ {
+		if e != nil && (e)[i] != nil {
+			v = append(v, (e)[i].Error())
 		}
 	}
-	return strings.Join(es, "\n")
+	return strings.Join(v, "\n")
 }
-
-// Error extend standard error
-type Error struct{ Err error }
-
-func (e *Error) MarshalJSON() (b []byte, err error) {
+func (e errors) MarshalJSON() ([]byte, error) {
 	var _ json.Marshaler = e
-	if e.Err != nil {
-		b = []byte(e.Err.Error())
+	var v []string
+	for i := 0; e != nil && i < len(e); i++ {
+		if e != nil && (e)[i] != nil {
+			v = append(v, (e)[i].Error())
+		}
 	}
-	return
+	return JSON.Marshal(v)
 }
-func (e *Error) UnmarshalJSON(b []byte) (err error) {
+func (e *errors) UnmarshalJSON(b []byte) error {
 	var _ json.Unmarshaler = e
-	if len(b) > 0 {
-		*e = NewError(string(b))
+	var v []string
+	err := JSON.Unmarshal(b, &v)
+	for i := range v {
+		if v[i] != "" {
+			*e = e.Append(fmt.Errorf(v[i]))
+		}
 	}
-	return
+	return err
 }
-
-func (e Error) As(target interface{}) bool { return errors.As(e.Err, target) }
-
-func (e Error) Is(target error) bool { return errors.Is(e.Err, target) }
-
-func (e Error) Unwrap() error { return errors.Unwrap(e.Err) }
-
-func (e Error) Error() string { var _ error = e; return e.Err.Error() }
 
 // Currency immutable struct contains price & its format
 type Currency struct {
@@ -280,11 +255,6 @@ func RecoverWith(catch func(recv interface{})) {
 	if r := recover(); r != nil && catch != nil {
 		catch(r)
 	}
-}
-
-// NewError created with fmt.Errorf
-func NewError(format string, a ...interface{}) Error {
-	return Error{fmt.Errorf(format, a...)}
 }
 
 // ListenToSignal will block until receiving signal from input

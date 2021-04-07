@@ -95,7 +95,7 @@ func (x *Client) SendMail(ctx context.Context, id string, from, to mail.Address,
 	if ok, err := validate(from, to); err != nil || !ok {
 		return err
 	} else if x.auth == nil || len(subject) < 1 || len(plain) < 1 || len(id) < 1 {
-		return kitgo.NewError("smtp: required auth / subject / plain / message id")
+		return fmt.Errorf("smtp: required auth / subject / plain / message id")
 	}
 	if x.sendMail == nil {
 		x.sendMail = smtp.SendMail
@@ -119,11 +119,11 @@ func validate(from, to mail.Address) (ok bool, err error) {
 		return ok, err
 	}
 	if from.Address == to.Address {
-		return false, kitgo.NewError("smtp: same address")
+		return false, fmt.Errorf("smtp: same address")
 	} else if ok, err := validateMailAddress(from); !ok {
-		return false, kitgo.NewError("smtp: invalid from address (%w)", err)
+		return false, fmt.Errorf("smtp: invalid from address (%w)", err)
 	} else if ok, err := validateMailAddress(to); !ok {
-		return false, kitgo.NewError("smtp: invalid to address (%w)", err)
+		return false, fmt.Errorf("smtp: invalid to address (%w)", err)
 	}
 	return true, nil
 }

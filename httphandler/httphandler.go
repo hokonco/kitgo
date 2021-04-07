@@ -169,7 +169,7 @@ func PanicRecoveryFromRequest(r *http.Request) interface{} {
 
 // ServerHijack
 func Hijack(w http.ResponseWriter) (c net.Conn, rw *bufio.ReadWriter, err error) {
-	err = kitgo.NewError(`http.ResponseWriter is not implementing http.Hijacker`)
+	err = fmt.Errorf(`http.ResponseWriter is not implementing http.Hijacker`)
 	if x, ok := w.(http.Hijacker); ok && x != nil {
 		c, rw, err = x.Hijack()
 	}
@@ -178,7 +178,7 @@ func Hijack(w http.ResponseWriter) (c net.Conn, rw *bufio.ReadWriter, err error)
 
 // ServerPush
 func Push(w http.ResponseWriter, target string, opts *http.PushOptions) (err error) {
-	err = kitgo.NewError(`http.ResponseWriter is not implementing http.Pusher`)
+	err = fmt.Errorf(`http.ResponseWriter is not implementing http.Pusher`)
 	if x, ok := w.(http.Pusher); ok && x != nil {
 		err = x.Push(target, opts)
 	}
@@ -187,7 +187,7 @@ func Push(w http.ResponseWriter, target string, opts *http.PushOptions) (err err
 
 // ServerSentEvent
 func SentEvent(w http.ResponseWriter, p []byte) (n int, err error) {
-	err = kitgo.NewError(`http.ResponseWriter is not implementing http.Flusher`)
+	err = fmt.Errorf(`http.ResponseWriter is not implementing http.Flusher`)
 	if x, ok := w.(http.Flusher); ok && x != nil {
 		n, err = w.Write(p)
 		x.Flush()

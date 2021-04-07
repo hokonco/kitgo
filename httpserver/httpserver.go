@@ -84,7 +84,7 @@ func (x *Server) Listen() error {
 			syscall.SIGTERM, syscall.SIGKILL, syscall.SIGINT,
 			syscall.SIGQUIT, syscall.SIGSTOP, syscall.SIGTSTP,
 		)
-		errChan <- kitgo.NewError("signal: [%d] %s\n%s", sig, sig, debug.Stack())
+		errChan <- fmt.Errorf("signal: [%d] %s\n%s", sig, sig, debug.Stack())
 	}()
 	if x.srv.TLSConfig == nil {
 		go func() { errChan <- x.srv.ListenAndServe() }() // --> on srv error
