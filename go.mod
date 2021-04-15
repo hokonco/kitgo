@@ -14,7 +14,7 @@ require (
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/gomodule/redigo v1.8.4 // indirect
 	github.com/json-iterator/go v1.1.10
-	github.com/mattn/go-sqlite3 v1.14.6
+	github.com/mattn/go-sqlite3 v1.14.7
 	github.com/onsi/gomega v1.11.0
 	github.com/prometheus/client_golang v1.10.0
 	github.com/prometheus/common v0.20.0 // indirect
