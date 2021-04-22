@@ -22,4 +22,4 @@ mod:
 mod.upgrade:
 	@go get -t -u ./...
 	@make mod
-	@go test all
+	# @go test all

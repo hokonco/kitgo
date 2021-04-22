@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -130,13 +131,13 @@ func Test_pkg_datatype(t *testing.T) {
 	t.Parallel()
 	Expect := NewWithT(t).Expect
 
-	Expect(string(kitgo.CSS("*{color:red}"))).To(Equal("*{color:red}"))
-	Expect(string(kitgo.HTML("<p>p</p>"))).To(Equal("<p>p</p>"))
-	Expect(string(kitgo.HTMLAttr("id=id"))).To(Equal("id=id"))
-	Expect(string(kitgo.JS("alert(1)"))).To(Equal("alert(1)"))
-	Expect(string(kitgo.JSStr("\"str\""))).To(Equal("\"str\""))
-	Expect(string(kitgo.URL("http://localhost/"))).To(Equal("http://localhost/"))
-	Expect(string(kitgo.Srcset("/a.jpg,/b.jpg"))).To(Equal("/a.jpg,/b.jpg"))
+	Expect(string(kitgo.Template.HTML.CSS("*{color:red}"))).To(Equal("*{color:red}"))
+	Expect(string(kitgo.Template.HTML.HTML("<p>p</p>"))).To(Equal("<p>p</p>"))
+	Expect(string(kitgo.Template.HTML.HTMLAttr("id=id"))).To(Equal("id=id"))
+	Expect(string(kitgo.Template.HTML.JS("alert(1)"))).To(Equal("alert(1)"))
+	Expect(string(kitgo.Template.HTML.JSStr("\"str\""))).To(Equal("\"str\""))
+	Expect(string(kitgo.Template.HTML.URL("http://localhost/"))).To(Equal("http://localhost/"))
+	Expect(string(kitgo.Template.HTML.Srcset("/a.jpg,/b.jpg"))).To(Equal("/a.jpg,/b.jpg"))
 
 	d := kitgo.Dict{}
 	d.Set("a", 1)
@@ -149,12 +150,10 @@ func Test_pkg_datatype(t *testing.T) {
 	l.Delete(0)
 
 	_ = kitgo.ShouldCover(0, 1)
-	_ = kitgo.ParseDuration("", 0)
+	// _ = kitgo.ParseDuration("", 0)
 
-	// done := make(chan struct{}, 1)
 	go func() { kitgo.ListenToSignal(os.Kill) }()
 	os.Kill.Signal()
-	// <-done
 }
 
 func Test_pkg_panic(t *testing.T) {
@@ -591,21 +590,28 @@ func Test_pkg_parallel(t *testing.T) {
 	ctx := context.Background()
 
 	t.Run("empty func", func(t *testing.T) {
-		ctx, cancel := context.WithTimeout(ctx, time.Millisecond)
+		ctx, cancel := context.WithTimeout(ctx, 5*time.Millisecond)
 		defer cancel()
 
-		ch := make(chan error)
-		go kitgo.Parallel(ctx, ch, nil, nil, nil, nil)
-		for err := range ch {
-			Expect(err).NotTo(HaveOccurred())
-		}
+		ch := func(i int, err error) { Expect(err).NotTo(HaveOccurred()) }
+		kitgo.Parallel(ctx, ch, nil, nil, nil, nil)
+		kitgo.Parallel(ctx, nil, nil, nil, nil, nil)
 	})
 	t.Run("context deadline exceeded", func(t *testing.T) {
-		ctx, cancel := context.WithTimeout(ctx, time.Millisecond)
+		ctx, cancel := context.WithTimeout(ctx, 5*time.Millisecond)
 		defer cancel()
 
-		ch := make(chan error)
-		go kitgo.Parallel(ctx, ch,
+		count := int64(0)
+		ch := func(i int, err error) {
+			if err != nil {
+				_ = atomic.AddInt64(&count, 1)
+				Expect(err.Error()).Should(Or(
+					Equal(fmt.Errorf("error").Error()),
+					Equal(context.DeadlineExceeded.Error()),
+				))
+			}
+		}
+		kitgo.Parallel(ctx, ch,
 			func() error { <-time.After(10 * time.Millisecond); return nil },
 			func() error { <-time.After(11 * time.Millisecond); return nil },
 			func() error { <-time.After(12 * time.Millisecond); return nil },
@@ -619,15 +625,6 @@ func Test_pkg_parallel(t *testing.T) {
 			func() error { return fmt.Errorf("error") },
 			func() error { return fmt.Errorf("error") },
 		)
-		count := 0
-		for err := range ch {
-			count++
-			Expect(err).Should(HaveOccurred())
-			Expect(err.Error()).Should(Or(
-				Equal(fmt.Errorf("error").Error()),
-				Equal(context.DeadlineExceeded.Error()),
-			))
-		}
 		// max 7 = 6 err_ + 1 context.DeadlineExceeded
 		Expect(count).To(BeNumerically("~", 1, 7))
 	})
