@@ -2,14 +2,14 @@ package kitgo
 
 import (
 	"context"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	html "html/template"
 	"os"
 	"os/signal"
 	"strings"
+	"sync"
 	"testing"
-	"time"
 	"unicode"
 
 	jsoniter "github.com/json-iterator/go"
@@ -75,14 +75,14 @@ func (l *List) Map(fn func(k int, v interface{})) {
 	})
 }
 
-func NewErrors(errs ...error) errors {
-	return errors(nil).Append(errs...)
+func NewErrors(errs ...error) errorList {
+	return errorList(nil).Append(errs...)
 }
 
-// errors is a wrapper to slice of `error`
-type errors []error
+// errorList is a wrapper to slice of `error`
+type errorList []error
 
-func (e errors) Append(errs ...error) errors {
+func (e errorList) Append(errs ...error) errorList {
 	for i := range errs {
 		if errs[i] != nil {
 			e = append(e, errs[i])
@@ -90,7 +90,7 @@ func (e errors) Append(errs ...error) errors {
 	}
 	return e
 }
-func (e errors) Error() string {
+func (e errorList) Error() string {
 	var _ error = e
 	var v []string
 	for i := 0; e != nil && i < len(e); i++ {
@@ -100,23 +100,23 @@ func (e errors) Error() string {
 	}
 	return strings.Join(v, "\n")
 }
-func (e errors) MarshalJSON() ([]byte, error) {
+func (e errorList) MarshalJSON() ([]byte, error) {
 	var _ json.Marshaler = e
 	var v []string
-	for i := 0; e != nil && i < len(e); i++ {
-		if e != nil && (e)[i] != nil {
-			v = append(v, (e)[i].Error())
+	for i := range e {
+		if e[i] != nil {
+			v = append(v, e[i].Error())
 		}
 	}
 	return JSON.Marshal(v)
 }
-func (e *errors) UnmarshalJSON(b []byte) error {
+func (e *errorList) UnmarshalJSON(b []byte) error {
 	var _ json.Unmarshaler = e
-	var v []string
+	v := []string{}
 	err := JSON.Unmarshal(b, &v)
 	for i := range v {
 		if v[i] != "" {
-			*e = e.Append(fmt.Errorf(v[i]))
+			*e = append(*e, fmt.Errorf(v[i]))
 		}
 	}
 	return err
@@ -170,9 +170,9 @@ func (c Currency) String() string {
 	}
 	str := fmt.Sprintf(c.Format,
 		printer.Sprint(formatter(unit.Amount(nil))),           // sign
-		printer.Sprintf(message.Key("%d", fallback), c.Value), // value
+		printer.Sprintf(message.Key("%s", fallback), c.Value), // value
 	)
-	b := &strings.Builder{}
+	b := new(strings.Builder)
 	b.Grow(len(str))
 	for _, r := range str {
 		if unicode.IsSpace(r) {
@@ -188,14 +188,6 @@ func (c Currency) String() string {
 // Public
 // =============================================================================
 
-type CSS = html.CSS
-type HTML = html.HTML
-type HTMLAttr = html.HTMLAttr
-type JS = html.JS
-type JSStr = html.JSStr
-type URL = html.URL
-type Srcset = html.Srcset
-
 // JSON is a jsoniter.API with ConfigFastest, satisfied encoding/json package
 var JSON jsoniter.API = jsoniter.ConfigFastest
 
@@ -206,41 +198,27 @@ var JSON jsoniter.API = jsoniter.ConfigFastest
 // process, would be better if receiving error channel is buffered with len(tasks)
 //
 // context is also cancelable and this is to run in go routine
-func Parallel(ctx context.Context, chanErr chan<- error, tasks ...func() error) {
-	_, cancel := context.WithCancel(ctx)
+func Parallel(ctx context.Context, onError func(int, error), tasks ...func() error) {
+	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
-	defer close(chanErr)
 
-	// define nonEmptyTasks to be a filtered list of tasks
-	nonEmptyTasks := [](func() error){}
-	for i := range tasks {
+	if onError == nil {
+		onError = func(int, error) {}
+	}
+	var wg sync.WaitGroup
+	var done = make(chan struct{}, 1)
+	for i := 0; i < len(tasks); i++ {
 		if tasks[i] != nil {
-			nonEmptyTasks = append(nonEmptyTasks, tasks[i])
+			wg.Add(1)
+			go func(i int) { onError(i, tasks[i]()); wg.Done() }(i)
 		}
 	}
-	if len(nonEmptyTasks) < 1 {
-		return
+	go func() { wg.Wait(); done <- struct{}{} }()
+	select {
+	case <-done:
+	case <-ctx.Done():
 	}
-
-	// prepare a buffered channel
-	ch := make(chan error, len(nonEmptyTasks))
-
-	// execute asynchronously all nonEmptyTasks
-	for i := range nonEmptyTasks {
-		go func(i int) { ch <- nonEmptyTasks[i]() }(i)
-	}
-
-	// listen to all result of nonEmptyTasks
-	for range nonEmptyTasks {
-		select {
-		case <-ctx.Done():
-			chanErr <- ctx.Err()
-			return
-		case err := <-ch:
-			chanErr <- err
-			continue
-		}
-	}
+	onError(-1, ctx.Err())
 }
 
 // PanicWhen execute a panic when condition is met and v is not nil
@@ -264,12 +242,26 @@ func ListenToSignal(sigs ...os.Signal) os.Signal {
 	return <-ch
 }
 
-func ParseDuration(s string, fallback time.Duration) (d time.Duration) {
-	var err error
-	if d, err = time.ParseDuration(s); err != nil || d < 1 {
-		d = fallback
-	}
-	return
+var Base64 = base64_{}
+
+type base64_ struct{}
+
+func (base64_) Std() Base64Wrapper    { return Base64Wrapper{base64.StdEncoding} }
+func (base64_) URL() Base64Wrapper    { return Base64Wrapper{base64.URLEncoding} }
+func (base64_) RawStd() Base64Wrapper { return Base64Wrapper{base64.RawStdEncoding} }
+func (base64_) RawURL() Base64Wrapper { return Base64Wrapper{base64.RawURLEncoding} }
+
+type Base64Wrapper struct{ b64 *base64.Encoding }
+
+func (x Base64Wrapper) BtoA(b []byte) []byte {
+	enc := make([]byte, x.b64.EncodedLen(len(b)))
+	x.b64.Encode(enc, b)
+	return enc
+}
+func (x Base64Wrapper) AtoB(b []byte) []byte {
+	dec := make([]byte, x.b64.DecodedLen(len(b)))
+	_, _ = x.b64.Decode(dec, b)
+	return dec
 }
 
 // =============================================================================
@@ -280,9 +272,9 @@ func ParseDuration(s string, fallback time.Duration) (d time.Duration) {
 func ShouldCover(code int, required float64) int {
 	covermode, coverage := testing.CoverMode(), testing.Coverage()
 	if code == 0 && covermode != "" && coverage < required {
-		fmt.Println("" +
-			fmt.Sprintf("FAIL\trequired: %.1f", required*100) + "% " +
-			fmt.Sprintf("but only cover %.1f", coverage*100) + "%",
+		_, _ = fmt.Println("" +
+			fmt.Sprintf("FAIL\trequired: %.1f", required*100) + "%" +
+			fmt.Sprintf(" but only cover %.1f", coverage*100) + "%",
 		)
 		code = -1
 	}
