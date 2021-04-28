@@ -11,7 +11,7 @@ require (
 	github.com/go-redis/redismock/v8 v8.0.6
 	github.com/golang/mock v1.5.0
 	github.com/golang/protobuf v1.5.2 // indirect
-	github.com/json-iterator/go v1.1.10
+	github.com/json-iterator/go v1.1.11
 	github.com/mattn/go-sqlite3 v1.14.6
 	github.com/onsi/gomega v1.11.0
 	github.com/prometheus/client_golang v1.10.0
