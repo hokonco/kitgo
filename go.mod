@@ -5,7 +5,7 @@ go 1.16
 require (
 	github.com/BurntSushi/graphics-go v0.0.0-20160129215708-b43f31a4a966
 	github.com/DATA-DOG/go-sqlmock v1.5.0
-	github.com/andybalholm/brotli v1.0.1
+	github.com/andybalholm/brotli v1.0.2
 	github.com/dgraph-io/ristretto v0.0.3
 	github.com/go-redis/redis/v8 v8.8.0
 	github.com/go-redis/redismock/v8 v8.0.6
