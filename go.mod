@@ -7,7 +7,7 @@ require (
 	github.com/DATA-DOG/go-sqlmock v1.5.0
 	github.com/andybalholm/brotli v1.0.1
 	github.com/dgraph-io/ristretto v0.0.3
-	github.com/go-redis/redis/v8 v8.8.0
+	github.com/go-redis/redis/v8 v8.8.2
 	github.com/go-redis/redismock/v8 v8.0.6
 	github.com/golang/mock v1.5.0
 	github.com/json-iterator/go v1.1.10
