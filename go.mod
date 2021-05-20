@@ -16,7 +16,7 @@ require (
 	github.com/onsi/gomega v1.11.0
 	github.com/prometheus/client_golang v1.10.0
 	github.com/prometheus/common v0.20.0 // indirect
-	github.com/rs/zerolog v1.21.0
+	github.com/rs/zerolog v1.22.0
 	github.com/tdewolff/minify/v2 v2.9.16
 	golang.org/x/crypto v0.0.0-20210322153248-0c34fe9e7dc2
 	golang.org/x/image v0.0.0-20210220032944-ac19c3e999fb
