@@ -7,11 +7,11 @@ require (
 	github.com/DATA-DOG/go-sqlmock v1.5.0
 	github.com/andybalholm/brotli v1.0.1
 	github.com/dgraph-io/ristretto v0.0.3
-	github.com/go-redis/redis/v8 v8.8.2
+	github.com/go-redis/redis/v8 v8.8.3
 	github.com/go-redis/redismock/v8 v8.0.6
 	github.com/golang/mock v1.5.0
 	github.com/golang/protobuf v1.5.2 // indirect
-	github.com/json-iterator/go v1.1.10
+	github.com/json-iterator/go v1.1.11
 	github.com/mattn/go-sqlite3 v1.14.6
 	github.com/onsi/gomega v1.11.0
 	github.com/prometheus/client_golang v1.10.0
