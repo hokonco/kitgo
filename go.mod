@@ -6,19 +6,21 @@ require (
 	github.com/BurntSushi/graphics-go v0.0.0-20160129215708-b43f31a4a966
 	github.com/DATA-DOG/go-sqlmock v1.5.0
 	github.com/andybalholm/brotli v1.0.3
-	github.com/dgraph-io/ristretto v0.0.3
-	github.com/go-redis/redis/v8 v8.8.3
+	github.com/dgraph-io/ristretto v0.1.0
+	github.com/go-redis/redis/v8 v8.10.0
 	github.com/go-redis/redismock/v8 v8.0.6
+	github.com/golang/glog v0.0.0-20210429001901-424d2337a529 // indirect
 	github.com/golang/mock v1.6.0
-	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/json-iterator/go v1.1.11
-	github.com/mattn/go-sqlite3 v1.14.6
-	github.com/onsi/gomega v1.11.0
+	github.com/mattn/go-sqlite3 v1.14.7
+	github.com/onsi/gomega v1.13.0
 	github.com/prometheus/client_golang v1.11.0
+	github.com/prometheus/common v0.29.0 // indirect
 	github.com/rs/zerolog v1.23.0
 	github.com/tdewolff/minify/v2 v2.9.17
-	golang.org/x/crypto v0.0.0-20210322153248-0c34fe9e7dc2
-	golang.org/x/image v0.0.0-20210220032944-ac19c3e999fb
-	golang.org/x/net v0.0.0-20210410081132-afb366fc7cd1 // indirect
+	golang.org/x/crypto v0.0.0-20210513164829-c07d793c2f9a
+	golang.org/x/image v0.0.0-20210607152325-775e3b0c77b9
+	golang.org/x/net v0.0.0-20210610132358-84b48f89b13b // indirect
+	golang.org/x/sys v0.0.0-20210611083646-a4fc73990273 // indirect
 	golang.org/x/text v0.3.6
 )
