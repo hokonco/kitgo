@@ -17,7 +17,7 @@ require (
 	github.com/prometheus/client_golang v1.11.0
 	github.com/prometheus/common v0.29.0 // indirect
 	github.com/rs/zerolog v1.23.0
-	github.com/tdewolff/minify/v2 v2.9.17
+	github.com/tdewolff/minify/v2 v2.9.19
 	golang.org/x/crypto v0.0.0-20210513164829-c07d793c2f9a
 	golang.org/x/image v0.0.0-20210607152325-775e3b0c77b9
 	golang.org/x/net v0.0.0-20210610132358-84b48f89b13b // indirect
