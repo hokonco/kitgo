@@ -13,7 +13,7 @@ require (
 	github.com/golang/mock v1.6.0
 	github.com/json-iterator/go v1.1.11
 	github.com/mattn/go-sqlite3 v1.14.7
-	github.com/onsi/gomega v1.13.0
+	github.com/onsi/gomega v1.16.0
 	github.com/prometheus/client_golang v1.11.0
 	github.com/prometheus/common v0.29.0 // indirect
 	github.com/rs/zerolog v1.23.0
